@@ -29,9 +29,9 @@ class _Destination {
   const _Destination(this.label, this.icon, this.screen);
 }
 
-const List<_Destination> _destinations = [
+final List<_Destination> _destinations = [
   _Destination('Mapa',     Icons.map,       Map()),
-  _Destination('Noticias', Icons.newspaper, News()),
+  const _Destination('Noticias', Icons.newspaper, News()),
 ];
 
 class MainScreen extends StatefulWidget {
@@ -47,10 +47,6 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_destinations[_selectedIndex].label, style: TextStyle(color: Colors.white)),
-        backgroundColor: Color(0xff1b3a6b),
-      ),
       body: IndexedStack(
         index: _selectedIndex,
         children: [
