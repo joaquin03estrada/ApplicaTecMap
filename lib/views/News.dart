@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/NewsViewModel.dart';
 import 'NewsDetail.dart';
 
 class News extends StatelessWidget {
   const News({super.key});
-
-  final List<Map<String, String>> _newsData = const [
-    {
-      'title': 'noticia 1 xd',
-      'imageUrl': 'https://picsum.photos/seed/itc1/500/300',
-    },
-    {
-      'title': 'noticia 2 xd',
-      'imageUrl': 'https://picsum.photos/seed/itc2/500/300',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +19,44 @@ class News extends StatelessWidget {
               _buildSearchBar(),
               const SizedBox(height: 20),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _newsData.length,
-                  itemBuilder: (context, index) {
-                    final newsItem = _newsData[index];
-                    return _buildNewsCard(
-                      context: context,
-                      title: newsItem['title']!,
-                      imageUrl: newsItem['imageUrl']!,
+                child: Consumer<NewsViewModel>(
+                  builder: (context, viewModel, child) {
+                    if (viewModel.isLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      );
+                    }
+
+                    if (viewModel.errorMessage.isNotEmpty) {
+                      return Center(
+                        child: Text(
+                          viewModel.errorMessage,
+                          style: const TextStyle(color: Colors.white, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+
+                    if (viewModel.newList.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No hay noticias disponibles en este momento.',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: viewModel.newList.length,
+                      itemBuilder: (context, index) {
+                        final newsItem = viewModel.newList[index];
+                        return _buildNewsCard(
+                          context: context,
+                          title: newsItem.title,
+                          imageUrl: newsItem.imageUrl,
+                          content: newsItem.content,
+                        );
+                      },
                     );
                   },
                 ),
@@ -65,7 +86,12 @@ class News extends StatelessWidget {
     );
   }
 
-  Widget _buildNewsCard({required BuildContext context, required String title, required String imageUrl}) {
+  Widget _buildNewsCard({
+    required BuildContext context,
+    required String title,
+    required String imageUrl,
+    required String content,
+  }) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -74,6 +100,7 @@ class News extends StatelessWidget {
             builder: (context) => NewsDetail(
               title: title,
               imageUrl: imageUrl,
+              content: content,
             ),
           ),
         );

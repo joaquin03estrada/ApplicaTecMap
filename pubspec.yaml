@@ -36,6 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
+  
+  # Paquetes para la extracción de noticias RSS
+  http: ^1.2.0
+  webfeed_plus: 1.1.2
+  provider: ^6.1.5+1
+  flutter_html: ^3.0.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

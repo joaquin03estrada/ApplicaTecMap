@@ -1,9 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; 
+import 'viewmodels/NewsViewModel.dart'; 
 import 'views/Map.dart';
 import 'views/News.dart';
+import 'helpers/NewsHelper.dart';
+import 'dart:io';
 
 void main() {
-  runApp(const MyApp());
+  HttpOverrides.global = MyHttpOverrides();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => NewsViewModel()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,7 +25,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0xff1b3a6b)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff1b3a6b)),
         useMaterial3: true,
       ),
       home: const MainScreen(),
