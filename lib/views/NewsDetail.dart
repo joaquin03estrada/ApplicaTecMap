@@ -47,7 +47,6 @@ class NewsDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Detecta si esta noticia en particular tiene un visor de PDF dinámico oculto
     final String? embeddedPdfUrl = _extractEmbeddedPdfUrl(content);
 
     return Scaffold(
@@ -95,6 +94,40 @@ class NewsDetail extends StatelessWidget {
                     onLinkTap: (url, attributes, element) {
                       _openUrl(url);
                     },
+                    extensions: [
+                      TagExtension(
+                        tagsToExtend: {"img"},
+                        builder: (extensionContext) {
+                          final String? imageUrl =
+                              extensionContext.attributes['src'];
+                          if (imageUrl == null) return const SizedBox.shrink();
+
+                          // Calculamos el ancho exacto de la pantalla del dispositivo.
+                          // Le restamos 32 para compensar el Padding de 16 que le pusiste a los lados de la pantalla.
+                          final double screenWidth =
+                              MediaQuery.of(context).size.width - 32;
+
+                          return Container(
+                            width: screenWidth, // Imponemos el límite estricto
+                            margin: const EdgeInsets.symmetric(vertical: 16.0),
+                            child: Image.network(
+                              imageUrl,
+                              fit: BoxFit
+                                  .contain, // Encoge la imagen para que quepa en el screenWidth
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                    color: Colors.grey[200],
+                                    padding: const EdgeInsets.all(16),
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                     style: {
                       "body": Style(
                         fontSize: FontSize(16.0),
@@ -110,6 +143,12 @@ class NewsDetail extends StatelessWidget {
                         lineHeight: LineHeight(1.5),
                         margin: Margins.only(bottom: 8.0),
                       ),
+                      // Acorralamos a las etiquetas <figure> de WordPress para que tampoco se expandan
+                      "figure": Style(
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero,
+                        width: Width(100, Unit.percent),
+                      ),
                       "a": Style(
                         color: Colors.blue[800],
                         textDecoration: TextDecoration.underline,
@@ -118,7 +157,6 @@ class NewsDetail extends StatelessWidget {
                     },
                   ),
 
-                  // El botón SOLO aparecerá si la noticia originalmente contenía un visor dinámico
                   if (embeddedPdfUrl != null) ...[
                     const SizedBox(height: 24),
                     const Divider(color: Colors.grey),
@@ -142,10 +180,9 @@ class NewsDetail extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Descargar Documento de la Noticia',
+                            'Abrir PDF',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          Icon(Icons.download, size: 20),
                         ],
                       ),
                     ),

@@ -3,8 +3,21 @@ import 'package:provider/provider.dart';
 import '../viewmodels/NewsViewModel.dart';
 import 'NewsDetail.dart';
 
-class News extends StatelessWidget {
+class News extends StatefulWidget {
   const News({super.key});
+
+  @override
+  State<News> createState() => _NewsState();
+}
+
+class _NewsState extends State<News> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +29,7 @@ class News extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              _buildSearchBar(),
+              _buildSearchBar(context),
               const SizedBox(height: 20),
               Expanded(
                 child: Consumer<NewsViewModel>(
@@ -68,19 +81,31 @@ class News extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const TextField(
+      child: TextField(
+        controller: _searchController,
+        onChanged: (texto) {
+          context.read<NewsViewModel>().onSearchQueryChanged(texto);
+        },
         decoration: InputDecoration(
           hintText: 'Buscar noticia...',
-          hintStyle: TextStyle(color: Colors.black54),
-          prefixIcon: Icon(Icons.search, color: Colors.black54),
+          hintStyle: const TextStyle(color: Colors.black54),
+          prefixIcon: const Icon(Icons.search, color: Colors.black54),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.clear, color: Colors.black54),
+            onPressed: () {
+              _searchController.clear();
+              context.read<NewsViewModel>().onSearchQueryChanged('');
+              FocusScope.of(context).unfocus();
+            },
+          ),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 15),
+          contentPadding: const EdgeInsets.symmetric(vertical: 15),
         ),
       ),
     );
