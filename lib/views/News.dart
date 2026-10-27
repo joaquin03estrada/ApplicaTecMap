@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/NewsViewModel.dart';
@@ -12,6 +13,10 @@ class News extends StatefulWidget {
 
 class _NewsState extends State<News> {
   final TextEditingController _searchController = TextEditingController();
+
+  Future<void> _refreshNews() async {
+    await context.read<NewsViewModel>().fetchNews(_searchController.text);
+  }
 
   @override
   void dispose() {
@@ -34,42 +39,17 @@ class _NewsState extends State<News> {
               Expanded(
                 child: Consumer<NewsViewModel>(
                   builder: (context, viewModel, child) {
-                    if (viewModel.isLoading) {
+                    if (viewModel.isLoading && viewModel.newList.isEmpty) {
                       return const Center(
                         child: CircularProgressIndicator(color: Colors.white),
                       );
                     }
 
-                    if (viewModel.errorMessage.isNotEmpty) {
-                      return Center(
-                        child: Text(
-                          viewModel.errorMessage,
-                          style: const TextStyle(color: Colors.white, fontSize: 16),
-                          textAlign: TextAlign.center,
-                        ),
-                      );
-                    }
-
-                    if (viewModel.newList.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'No hay noticias disponibles en este momento.',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      itemCount: viewModel.newList.length,
-                      itemBuilder: (context, index) {
-                        final newsItem = viewModel.newList[index];
-                        return _buildNewsCard(
-                          context: context,
-                          title: newsItem.title,
-                          imageUrl: newsItem.imageUrl,
-                          content: newsItem.content,
-                        );
-                      },
+                    return RefreshIndicator(
+                      color: const Color(0xFF1A365D),
+                      backgroundColor: Colors.white,
+                      onRefresh: _refreshNews,
+                      child: _buildNewsList(context, viewModel),
                     );
                   },
                 ),
@@ -78,6 +58,65 @@ class _NewsState extends State<News> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNewsList(BuildContext context, NewsViewModel viewModel) {
+    if (viewModel.errorMessage.isNotEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.6,
+            child: Center(
+              child: Text(
+                viewModel.errorMessage,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (viewModel.newList.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.sizeOf(context).height * 0.6,
+            child: const Center(
+              child: Text(
+                'No hay noticias disponibles en este momento.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: viewModel.newList.length,
+      itemBuilder: (context, index) {
+        final newsItem = viewModel.newList[index];
+
+        return _buildNewsCard(
+          context: context,
+          title: newsItem.title,
+          imageUrl: newsItem.imageUrl,
+          content: newsItem.content,
+        );
+      },
     );
   }
 
@@ -147,7 +186,11 @@ class _NewsState extends State<News> {
               errorBuilder: (context, error, stackTrace) => Container(
                 height: 180,
                 color: Colors.grey[300],
-                child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
+                child: const Icon(
+                  Icons.image_not_supported,
+                  size: 50,
+                  color: Colors.grey,
+                ),
               ),
             ),
             Padding(
